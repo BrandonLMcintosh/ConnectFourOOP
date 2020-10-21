@@ -1,9 +1,9 @@
 class Game{
-  constructor(height = 6, width = 7){
+  constructor(player1 = new Player('red'), player2 = new Player('blue'), height = 6, width = 7){
+    this.players = [player1, player2];
     this.height = height;
-    this.width = width; 
-    this.moves = 0;
-    this.currPlayer = 1;
+    this.width = width;
+    this.currPlayer = player1;
     this.board = new Array(this.height).fill(new Array(this.width).fill(null)).map((x) => x.map(y => y));
     this.makeHtmlBoard();
     this.gameOver = false;
@@ -20,7 +20,7 @@ class Game{
     //set that row id to be column-top which will change the style of the row based on the css
     top.setAttribute('id', 'column-top');
     //add an event listener to that entire row that runs the handleClick function
-    top.addEventListener('click', this.handleClick);
+    top.addEventListener('click', (evt) => this.handleClick(evt));
     //create a new array equal to the first array on board array
     const width = this.board[0];
     //create a new cell in the column-top row for each element of the width array
@@ -65,13 +65,16 @@ class Game{
     const cell = document.getElementById(`${y}-${x}`);
     const piece = document.createElement('div');
     piece.classList.add('piece');
-    piece.classList.add(`P${this.currPlayer}`, 'fall');
+    piece.classList.add('fall');
+    piece.style.backgroundColor = this.currPlayer.color;
     cell.append(piece);
     this.board[y][x] = this.currPlayer;
-    this.moves++;
   }
 
-  endGame = msg => alert(msg);
+  endGame = msg => {
+    alert(msg);
+    this.gameOver = true;
+  }
 
   win(cells) {
     // Check four cells to see if they're all color of current player
@@ -113,10 +116,13 @@ class Game{
   }
 
   switchPlayer() {
-    this.currPlayer = (this.moves % 2) + 1;
+    this.currPlayer = (this.currPlayer === this.players[0]) ? this.players[1] : this.players[0];
   }
 
   handleClick(evt) {
+    if(this.gameOver){
+      return;
+    }
     // get x from ID of clicked cell
     const x = evt.target.id;
   
@@ -134,20 +140,36 @@ class Game{
     // check for win  
     if (this.checkForWin()){
       //setting timeout so that when a tie happens, it will won't alert for 1ms to allow the css to render the animation for the piece.
-      setTimeout(() => this.endGame(`Player ${currPlayer} won!`), 1);
+      this.endGame(`Player ${this.currPlayer.color} won!`);
     }
   
     // check for tie
     // TODO: check if all cells in board are filled; if so call, call endGame
-    if(checkForTie()){
+    if(this.checkForTie()){
       //setting timeout so that when a tie happens, it will won't alert for 1ms to allow the css to render the animation for the piece.
-      setTimeout(() => this.endGame(`The game is a tie with ${moves} moves!`), 1);
+      this.endGame(`The game is a tie!`);
     }
-  
-    // switch players
-    switchPlayer();
+    this.switchPlayer()
   }
 }
 
-new Game(6, 7);
+class Player{
+  constructor(color){
+    this.color = color;
+  }
+}
+
+
+const get = document.querySelector.bind(document);
+
+get('#sizeForm').addEventListener('submit', (evt) => {
+  evt.preventDefault();
+  const inputWidth = (Number(get('.size.width').value) > 4) ? Number(get('.size.width').value) : null;
+  const inputHeight = (Number(get('.size.height').value) > 4) ? Number(get('.size.height').value) : null;
+  const inputPlayer1 = get('.player.one').value;
+  const inputPlayer2 = get('.player.two').value;
+  ((Number(inputWidth) && Number(inputHeight))) ? new Game(new Player(inputPlayer1), new Player(inputPlayer2), inputHeight, inputWidth) : new Game();
+});
+
+
 

@@ -5,8 +5,19 @@ html{
 body{
   background-image: linear-gradient(#ecf0f1, #1abc9c);
   justify-content: center;
-  margin-top: 20%;
+  margin-top: 20px;
   text-align: center;
+}
+
+#sizeForm{
+  height: 60px;
+  margin-bottom: 20px;
+}
+.input{
+  height: 100%;
+  border-radius: 30px;
+  border-style: none;
+  outline: none;
 }
 
 #board{
@@ -18,7 +29,7 @@ hr{
   height: 1px;
   background: #333;
   background-image: linear-gradient(to right, #ccc, #333, #ccc);
-  margin-bottom: 5%;
+  margin-bottom: 20px;
 }
 
 h1{
@@ -43,15 +54,6 @@ h1{
   width: 80%;
   height: 80%;
   border-radius: 50%;
-}
-
-/* TODO: make pieces red/blue,  depending on player 1/2 piece */
-.piece.P1{
-  background-color: #e74c3c;
-}
-
-.piece.P2{
-  background-color: #2980b9;
 }
 
 /* column-top is table row of clickable areas for each column */
