@@ -1,11 +1,11 @@
-const WIDTH = 7;
-const HEIGHT = 6;
+let WIDTH = 7;
+let HEIGHT = 6;
 
 let moves = 0;
 let currPlayer = 1;
 //I had to .map the array and sub-arrays because if I left it as "new Array(HEIGHT).fill(new Array(WIDTH).fill(null))" all of the sub-arrays were referencing the same point in memory.
 //.map helps me create a new array with new memory addresses for each subarray. 
-const board = new Array(HEIGHT).fill(new Array(WIDTH).fill(null)).map((x) => x.map(y => y)); // array of rows, each row is array of cells  (board[y][x])
+let board = new Array(HEIGHT).fill(new Array(WIDTH).fill(null)).map((x) => x.map(y => y)); // array of rows, each row is array of cells  (board[y][x])
 const handleClick = evt => {
   // get x from ID of clicked cell
   const x = evt.target.id;
@@ -21,15 +21,17 @@ const handleClick = evt => {
   // TODO: add line to update in-memory board
   placeInTable(y, x);
 
-  // check for win
-  if (checkForWin()) {
-    return endGame(`Player ${currPlayer} won!`);
+  // check for win  
+  if (checkForWin()){
+    //setting timeout so that when a tie happens, it will won't alert for 1ms to allow the css to render the animation for the piece.
+    setTimeout(() => endGame(`Player ${currPlayer} won!`), 1);
   }
 
   // check for tie
   // TODO: check if all cells in board are filled; if so call, call endGame
   if(checkForTie()){
-    endGame(`The game is a tie with ${moves} moves!`);
+    //setting timeout so that when a tie happens, it will won't alert for 1ms to allow the css to render the animation for the piece.
+    setTimeout(() => endGame(`The game is a tie with ${moves} moves!`), 1);
   }
 
   // switch players
@@ -39,6 +41,8 @@ const handleClick = evt => {
 const makeHtmlBoard = () => {
   //select the board table
   const htmlBoard = document.querySelector('#board');
+  //removing previous cells if there were any
+  htmlBoard.innerHTML = '';
   //create a new row
   const top = document.createElement("tr");
   //set that row id to be column-top which will change the style of the row based on the css
@@ -67,6 +71,7 @@ const makeHtmlBoard = () => {
       //create a new cell for that row
       const cell = document.createElement('td');
       //set the id of that cell to the coordinates that it exists in the table
+      cell.classList.add('cell');
       cell.setAttribute('id', `${yindex}-${xindex}`);
       //append the cell to the row
       row.append(cell);
@@ -88,36 +93,36 @@ const placeInTable = (y, x) => {
   const cell = document.getElementById(`${y}-${x}`);
   const piece = document.createElement('div');
   piece.classList.add('piece');
-  piece.classList.add(`P${currPlayer}`);
+  piece.classList.add(`P${currPlayer}`, 'fall');
   cell.append(piece);
   board[y][x] = currPlayer;
   moves++;
 }
 /* endGame: announce game end */
 const endGame = msg => alert(msg);
+const win = cells => {
+  // Check four cells to see if they're all color of current player
+  //  - cells: list of four (y, x) cells
+  //  - returns true if all are legal coordinates & all match currPlayer
+
+  //for every element in the selected cell
+  return cells.every(
+    ([y, x]) =>
+      //If all of the elements are on the board
+      y >= 0 && 
+      y < HEIGHT && 
+      x >= 0 && 
+      x < WIDTH && 
+      board[y][x] === currPlayer
+  )
+}
 /* checkForWin: check board cell-by-cell for "does a win start here?" */
 const checkForWin = () => {
-  const _win = cells => {
-    // Check four cells to see if they're all color of current player
-    //  - cells: list of four (y, x) cells
-    //  - returns true if all are legal coordinates & all match currPlayer
-
-    //for every element in the selected cell
-    cells.every(
-      ([y, x]) =>
-        //if all of the cells are on the board
-        y >= 0 &&
-        y < HEIGHT &&
-        x >= 0 &&
-        x < WIDTH &&
         //And all of the cells belong to the curent player
-        board[y][x] === currPlayer
-    );
-  }
 
   // TODO: read and understand this code. Add comments to help you.
   //For every row
-  board.forEach((row, y) => row.forEach((column, x) => {
+  return board.some((row, y) => row.some((column, x) => {
     //calculate horizontal win (going right) of each cell
     const horiz = [[y, x], [y, x + 1], [y, x + 2], [y, x + 3]];
     //calculate vertical win (going up) of each cell
@@ -127,11 +132,13 @@ const checkForWin = () => {
     //calculate diagnonal win going down and to the left of each cell
     const diagDL = [[y, x], [y + 1, x - 1], [y + 2, x - 2], [y + 3, x - 3]];
     //for each cell, check if any one of the possible win scenarios is true
-    const result = (_win(horiz) || _win(vert) || _win(diagDR) || _win(diagDL));
-    console.log(result);
-    return result;
+    if(win(horiz) || win(vert) || win(diagDR) || win(diagDL)){
+      return true;
+    }
   }));
 }
+
+
 const checkForTie = () => board.every(row => row.every(cell => cell !== null));
 const switchPlayer = () => currPlayer = (moves % 2) + 1;
 makeHtmlBoard();
